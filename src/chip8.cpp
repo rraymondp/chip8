@@ -1,4 +1,4 @@
-#include "chip8.h"
+#include "../inc/chip8.h"
 
 using namespace std;
 
@@ -14,12 +14,12 @@ void chip8::initialize(){
     for(int i = 0; i < 80; i++){
         memory[i] = chip8_fontset[i];
     }
-    for(i = 0; i < 16; i++){
+    for(int i = 0; i < 16; i++){
         stack[i] = 0;
         keypad[i] = 0;
         V[i] = 0;
     }
-    for(i = 0; i < 64 * 32; i++){
+    for(int i = 0; i < 64 * 32; i++){
         display[i] = 0;
     }
 }
@@ -48,6 +48,8 @@ void chip8::emutlateCycle(){
     unsigned char x = (opcode & 0x0F00) >> 8; //x is a 4-bit value, located at the lower 4-bits of the 2 most significant bytes of the opcode
     unsigned char y = (opcode & 0x00F0) >> 4; //y is a 4-bit valye, located at the upper 4-bits of the 2 least significant bytes of the opcode
     unsigned char kk = (opcode & 0x00FF); //kk is the lowest 8-bits of an opcode
+    bool isPressed;
+    int i;
 
     switch (opcode & 0xF000){
         case 0x0000:
@@ -113,11 +115,11 @@ void chip8::emutlateCycle(){
             V[x] = kk;
             break;
 
-        case 0x7000;
+        case 0x7000:
             V[x] += kk;
             break;
 
-        case 0x8000;
+        case 0x8000:
             switch (opcode & 0x000F){
                 case(0x0001):
                     V[x] = V[x] | V[y];
@@ -135,34 +137,34 @@ void chip8::emutlateCycle(){
                     break;
                 
                 case(0x0004):
-                    if((V[x] + V[y]) > 255){ V[16] = 1; }
-                    else{ V[16 = 0]; }
+                    if((V[x] + V[y]) > 255){ V[0xF] = 1; }
+                    else{ V[0xF] = 0; }
                     V[x] += + V[y]; //only keep the 8 LSB if there is overflow
                     incrementPC();
                     break;
                 
                 case(0x0005):
-                    if(V[x] > V[y]){ V[16] = 1; }
-                    else{ V[16 = 0]; }
+                    if(V[x] > V[y]){ V[0xF] = 1; }
+                    else{ V[0xF] = 0; }
                     V[x] -= V[y];
                     incrementPC();
                     break;
                 
                 case(0x0006):
-                    V[16] = V[x] & 0x0001;
+                    V[0xF] = V[x] & 0x0001;
                     V[x] >>= 1; // divide V[x] by 2 by shifting the bits by 1 to the right
                     incrementPC();
                     break;
                 
                 case(0x0007):
-                    if(V[y] > V[x]){ V[16] = 1; }
-                    else{ V[16 = 0]; }
+                    if(V[y] > V[x]){ V[0xF] = 1; }
+                    else{ V[0XF] = 0; }
                     V[x] -= V[y];
                     incrementPC();
                     break;
                 
                 case(0x000E):
-                    V[16] = V[x] & 0x0001;
+                    V[0xF] = V[x] & 0x0001;
                     V[x] <<= 1; // multiply V[x] by 2 by shifting the bits by 1 to the left
                     incrementPC();
                     break;
@@ -191,17 +193,34 @@ void chip8::emutlateCycle(){
             break;
         
         case 0xD000:
+            int xCoord = V[x] % 64; //x-coordinate wrap around
+            int yCoord = V[y] % 32; //y-coordinate wrap around 
+            int height = opcode & 0x000F;
+            V[0xF] = 0;
+            
+            for(int row = 0; row < height; row++){
+                for(int col = 0; col < 8; col++){
+                    if(memory[(I + row) &&] == 1){
+                        if(display[(xCoord + (64*yCoord)) + (64*row) + col] == 1){
+                            V[0xF] = 1;
+                        }
+                        display[(xCoord + (64*yCoord)) + (64*row) + col] ^= 1;
+                    }
+                }
+            }
+
+
 
         case 0xE000:
             switch(opcode & 0x00FF){
                 case 0x009E:
-                    if(key[V[x]]){
+                    if(keypad[V[x]]){
                         incrementPC();
                     }
                     incrementPC();
                     break;
                 case 0x00A1:
-                    if(!key[V[x]]){
+                    if(!keypad[V[x]]){
                         incrementPC();
                     }
                     incrementPC();
@@ -219,8 +238,8 @@ void chip8::emutlateCycle(){
                 Check each key to see if it is pressed (set to 1)
                 */
                 case 0x000A:
-                    bool isPressed = false;
-                    int i = 0
+                    isPressed = false;
+                    i = 0;
                     while(!isPressed){
                         if(V[i]){
                             V[x] = i;
@@ -265,19 +284,20 @@ void chip8::emutlateCycle(){
                     incrementPC();
                     break;
 
-                case 0x055:
-                    for(int i = 0; i < x; i++){
+                case 0x0055:
+                    for(i = 0; i < x; i++){
                         memory[I + i] = V[i];
                     }
                     incrementPC();
                     break;
 
-                case 0x065:
-                    for(int i = 0; i < x; i++){
-                        V[i] = memory[I + i;]
+                case 0x0065:
+                    for(i = 0; i < x; i++){
+                        V[i] = memory[I + i];
                     }
                     incrementPC();
                     break;
+
                 default:
                     break;
             }

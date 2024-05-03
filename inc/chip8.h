@@ -2,6 +2,7 @@
 #define CHIP8_H
 
 #include <time.h>
+#include <iostream>
 
 class chip8{
     private:
@@ -23,7 +24,7 @@ class chip8{
             0xE0, 0x90, 0x90, 0x90, 0xE0, // D
             0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-        }
+        };
 
         //Opcodes are 2 bytes (16-bits) long --> short has 2 bytes of memory
         unsigned short opcode; 
@@ -91,13 +92,13 @@ class chip8{
         Index is set to 1 when key is pressed
         Index is cleared to 0 when key is not pressed
         */
-        unsigned char keypad[16]
+        unsigned char keypad[16];
 
     public:
         void initialize();
         void emutlateCycle();
         bool loadGame(char* filename);
         void incrementPC();
-}
+};
 
 #endif

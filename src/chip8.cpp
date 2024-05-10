@@ -192,7 +192,7 @@ void chip8::emutlateCycle(){
             incrementPC();
             break;
         
-        case 0xD000:
+        case 0xD000: {
             int xCoord = V[x] % 64; //x-coordinate wrap around
             int yCoord = V[y] % 32; //y-coordinate wrap around 
             int height = opcode & 0x000F;
@@ -200,16 +200,17 @@ void chip8::emutlateCycle(){
             
             for(int row = 0; row < height; row++){
                 for(int col = 0; col < 8; col++){
-                    if(memory[(I + row) &&] == 1){
-                        if(display[(xCoord + (64*yCoord)) + (64*row) + col] == 1){
-                            V[0xF] = 1;
+                    if((memory[(I + row)] && (0b10000000 >> col)) != 0){                  //(I + row) --> Nth byte of data from the sprite font
+                                                                                          //After getting the Nth byte, we want to check each bit from left to right and check if it is 1(or not zero)
+                                                                                          //If the bit from the sprite is 1, we want to XOR the pixel on the display starting at Vx and Vy
+                        if(display[(xCoord + (64*yCoord)) + (64*row) + col] == 1){        //If the curr pixel on the display is already set/ON, then set the V[F] flag
+                            V[0xF] = 1;                                                   
                         }
-                        display[(xCoord + (64*yCoord)) + (64*row) + col] ^= 1;
+                        display[(xCoord + (64*yCoord)) + (64*row) + col] ^= 1;            //Then XOR the curr pixel on the display
                     }
                 }
             }
-
-
+        }
 
         case 0xE000:
             switch(opcode & 0x00FF){

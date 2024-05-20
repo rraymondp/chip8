@@ -99,6 +99,7 @@ class chip8{
         void emutlateCycle();
         bool loadGame(char* filename);
         void incrementPC();
+        uint8_t* getKeypad();
 };
 
 #endif

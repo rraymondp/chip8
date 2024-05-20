@@ -9,11 +9,12 @@ class sdl{
         SDL_Event event;
         enum state {STOP, RUNNING, PAUSE};
         enum state myState;
+        bool debug;
 
     public:
         sdl();
         ~sdl();
-        void eventHandler();
+        void eventHandler(uint8_t keypad[]);
         int getState();
 };
 

@@ -24,6 +24,11 @@ void chip8::initialize(){
     }
 }
 
+uint8_t* chip8::getKeypad(){
+    return keypad;
+}
+
+
 /*
 After each instruction is completed, the pc is incremented by 2 since an opcode/instruction
 takes up 2 memory locations

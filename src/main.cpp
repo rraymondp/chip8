@@ -14,6 +14,7 @@ int main(int argc, char* argv[]){
 
     while(mySDL.getState()){          //loop if not in STOP state
         myDisplay.updateDisplay();
+        mySDL.eventHandler(myChip8.getKeypad());
         SDL_Delay(16); //16ms = 60Hz
     }
 

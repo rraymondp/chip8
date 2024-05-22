@@ -8,6 +8,7 @@ class display{
     private:
         SDL_Window *window;
         SDL_Renderer *renderer;
+        SDL_Rect rect;
         int windowHeight;
         int windowWidth;
         int windowScaleFactor;  //scale factor since original size of chip-8 is 32x64 (which is too small)
@@ -19,7 +20,7 @@ class display{
         display();
         ~display();
         void clearDisplay();
-        void updateDisplay();
+        void updateDisplay(uint8_t display[]);
 
         int getFgColour();
         int getBgColour();

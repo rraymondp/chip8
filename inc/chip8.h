@@ -26,6 +26,8 @@ class chip8{
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
 
+        int entryPoint;
+
         //Opcodes are 2 bytes (16-bits) long --> short has 2 bytes of memory
         uint16_t opcode; 
         
@@ -94,12 +96,15 @@ class chip8{
         */
         uint8_t keypad[16];
 
+        bool debug;
+
     public:
-        void initialize();
+        chip8();
         void emutlateCycle();
-        bool loadGame(char* filename);
+        bool loadGame(const char* filename);
         void incrementPC();
         uint8_t* getKeypad();
+        uint8_t* getDisplay();
 };
 
 #endif

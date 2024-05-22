@@ -10,11 +10,13 @@ using namespace std;
 
 int main(int argc, char* argv[]){
 
+    myChip8.loadGame("../ROMS/tests/IBM Logo.ch8");
     myDisplay.clearDisplay();
 
     while(mySDL.getState()){          //loop if not in STOP state
-        myDisplay.updateDisplay();
+        myChip8.emutlateCycle();
         mySDL.eventHandler(myChip8.getKeypad());
+        myDisplay.updateDisplay(myChip8.getDisplay());
         SDL_Delay(16); //16ms = 60Hz
     }
 

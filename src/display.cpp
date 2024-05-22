@@ -8,8 +8,8 @@ display::display(){
     renderer = NULL;
 
     fg_colour = 0xFFFFFFFF; //white
-    bg_colour = 0x008080FF; //teal
-    // bg_colour = 0x000000FF; //black
+    //bg_colour = 0x008080FF; //teal
+    bg_colour = 0x000000FF; //black
 
     window = SDL_CreateWindow(
         "CHIP8 EMULATOR",
@@ -33,7 +33,26 @@ void display::clearDisplay(){
     SDL_RenderClear(renderer);
 }
 
-void display::updateDisplay(){
+void display::updateDisplay(uint8_t display[]){
+
+    for(int row = 0; row < 32; row++){
+        for(int col = 0; col < 64; col++){
+            if(display[col + (row * 64)]){
+                rect.x = col * windowScaleFactor;
+                rect.y = row * windowScaleFactor;
+                rect.w = windowScaleFactor;
+                rect.h = windowScaleFactor;  
+
+                SDL_SetRenderDrawColor(renderer, getFgRed(), getFgGreen(), getFgBlue(), getFgAlpha());
+                SDL_RenderFillRect(renderer, &rect);
+            }
+            // else{
+            //     SDL_SetRenderDrawColor(renderer, getBgRed(), getBgGreen(), getBgBlue(), getBgAlpha());
+            //     SDL_RenderFillRect(renderer, &rect);
+            // }
+        }
+    }
+
     SDL_RenderPresent(renderer);
 }
 

@@ -2,15 +2,18 @@
 
 using namespace std;
 
-void chip8::initialize(){
+chip8::chip8(){
     srand(time(NULL)); //seed for random nember generatation for opcode 0xCxkk
-    pc = 0x200; //pc starts at 0x200 since the first 512 bytes are reserved
+    entryPoint = 0x200;
+    pc = entryPoint; //pc starts at 0x200 since the first 512 bytes are reserved
     opcode = 0;
     I = 0;
     sp = 0;
-    pc = 0;
     st = 0;
     dt = 0;
+
+    debug = false;
+
     for(int i = 0; i < 80; i++){
         memory[i] = chip8_fontset[i];
     }
@@ -24,8 +27,39 @@ void chip8::initialize(){
     }
 }
 
+bool chip8::loadGame(const char* filename){
+
+    FILE* rom = fopen(filename, "rb");
+    if(!rom){
+        cout << "File Not Found!" << endl;
+        return false;
+    }
+
+    fseek(rom, 0, SEEK_END); //move file pointer to end of file
+    size_t romSize = ftell(rom); //find the position of file pointer with respect to start of file (return number of bytes)
+    size_t maxSize = sizeof(memory) - sizeof(entryPoint);
+
+    if(romSize > maxSize){
+        cout << "ROM file is too big! ROM size: " << romSize << " Maz size: " << maxSize << endl;
+        return false;
+    }
+
+    /*
+    reads from a file and stores it into the buffer memory
+    reads from the given rom, and stores it into memory starting at 0x200
+    */
+    fread(&memory[entryPoint], romSize, 1, rom); 
+
+    fclose(rom);
+    return true;
+}
+
 uint8_t* chip8::getKeypad(){
     return keypad;
+}
+
+uint8_t* chip8::getDisplay(){
+    return display;
 }
 
 
@@ -56,6 +90,8 @@ void chip8::emutlateCycle(){
     bool isPressed;
     int i;
 
+    printf("Address: 0x%04X, Opcode: 0x%04X\n", pc, opcode);
+
     switch (opcode & 0xF000){
         case 0x0000:
             switch (opcode & 0x00FF){
@@ -72,7 +108,10 @@ void chip8::emutlateCycle(){
                     sp--;
                     incrementPC();
                     break;
+                default:
+                    break;
             }
+            break;
 
         //0x1nnn --> jump to location nnn
         //Note: no need to increment pc since we're moving it to a new location
@@ -118,10 +157,12 @@ void chip8::emutlateCycle(){
 
         case 0x6000:
             V[x] = kk;
+            incrementPC();
             break;
 
         case 0x7000:
             V[x] += kk;
+            incrementPC();
             break;
 
         case 0x8000:
@@ -173,7 +214,11 @@ void chip8::emutlateCycle(){
                     V[x] <<= 1; // multiply V[x] by 2 by shifting the bits by 1 to the left
                     incrementPC();
                     break;
+
+                default:
+                    break;
             }
+            break;
         
         case 0x9000:
             if(V[x] != V[y]){
@@ -204,7 +249,13 @@ void chip8::emutlateCycle(){
             V[0xF] = 0;
             
             for(int row = 0; row < height; row++){
+                if(yCoord + row > 64){
+                    break;
+                }
                 for(int col = 0; col < 8; col++){
+                    if(xCoord + col > 32){
+                        break;
+                    }
                     if((memory[(I + row)] && (0b10000000 >> col)) != 0){                  //(I + row) --> Nth byte of data from the sprite font
                                                                                           //After getting the Nth byte, we want to check each bit from left to right and check if it is 1(or not zero)
                                                                                           //If the bit from the sprite is 1, we want to XOR the pixel on the display starting at Vx and Vy
@@ -216,6 +267,7 @@ void chip8::emutlateCycle(){
                 }
             }
         }
+        break;
 
         case 0xE000:
             switch(opcode & 0x00FF){
@@ -231,7 +283,10 @@ void chip8::emutlateCycle(){
                     }
                     incrementPC();
                     break;
+                default:
+                    break;
             }
+            break;
         
         case 0xF000:
             switch(opcode & 0x00FF){
@@ -307,6 +362,7 @@ void chip8::emutlateCycle(){
                 default:
                     break;
             }
+            break;
         
         default:
             break;

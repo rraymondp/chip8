@@ -98,11 +98,14 @@ class chip8{
 
         bool debug;
 
+        bool drawFlag;
+
     public:
         chip8();
         void emutlateCycle();
-        bool loadGame(const char* filename);
+        bool loadGame( char* filename);
         void incrementPC();
+        bool getDrawFlag();
         uint8_t* getKeypad();
         uint8_t* getDisplay();
 };

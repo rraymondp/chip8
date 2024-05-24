@@ -1,4 +1,5 @@
 #include "../inc/chip8.h"
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ chip8::chip8(){
     sp = 0;
     st = 0;
     dt = 0;
+    drawFlag = false;
 
     debug = false;
 
@@ -27,7 +29,7 @@ chip8::chip8(){
     }
 }
 
-bool chip8::loadGame(const char* filename){
+bool chip8::loadGame(char* filename){
 
     FILE* rom = fopen(filename, "rb");
     if(!rom){
@@ -38,6 +40,7 @@ bool chip8::loadGame(const char* filename){
     fseek(rom, 0, SEEK_END); //move file pointer to end of file
     size_t romSize = ftell(rom); //find the position of file pointer with respect to start of file (return number of bytes)
     size_t maxSize = sizeof(memory) - sizeof(entryPoint);
+    rewind(rom); //sets file position to the beginning
 
     if(romSize > maxSize){
         cout << "ROM file is too big! ROM size: " << romSize << " Maz size: " << maxSize << endl;
@@ -48,7 +51,7 @@ bool chip8::loadGame(const char* filename){
     reads from a file and stores it into the buffer memory
     reads from the given rom, and stores it into memory starting at 0x200
     */
-    fread(&memory[entryPoint], romSize, 1, rom); 
+    fread(&memory[entryPoint], 1, romSize, rom); 
 
     fclose(rom);
     return true;
@@ -60,6 +63,10 @@ uint8_t* chip8::getKeypad(){
 
 uint8_t* chip8::getDisplay(){
     return display;
+}
+
+bool chip8::getDrawFlag(){
+    return drawFlag;
 }
 
 
@@ -97,6 +104,7 @@ void chip8::emutlateCycle(){
             switch (opcode & 0x00FF){
                 //0x00E0 --> Clear display
                 case 0x00E0:
+                    //printf("[OK] Opcode: 0x%04X\n", opcode);
                     for(i = 0; i < 64 * 32; i++){
                         display[i] = 0;
                     }
@@ -104,11 +112,13 @@ void chip8::emutlateCycle(){
                     break;
                 //0x00EE --> return from subroutine
                 case 0x00EE:
+                    //printf("[OK] Opcode: 0x%04X\n", opcode);
                     pc = stack[sp];
                     sp--;
                     incrementPC();
                     break;
                 default:
+                    //printf("[FAILED] Unknown Opcode: 0x%04X\n", opcode);
                     break;
             }
             break;
@@ -167,6 +177,11 @@ void chip8::emutlateCycle(){
 
         case 0x8000:
             switch (opcode & 0x000F){
+                case(0x0000):
+                    V[x] = V[y];
+                    incrementPC();
+                    break;
+
                 case(0x0001):
                     V[x] = V[x] | V[y];
                     incrementPC();
@@ -185,7 +200,7 @@ void chip8::emutlateCycle(){
                 case(0x0004):
                     if((V[x] + V[y]) > 255){ V[0xF] = 1; }
                     else{ V[0xF] = 0; }
-                    V[x] += + V[y]; //only keep the 8 LSB if there is overflow
+                    V[x] += V[y]; //only keep the 8 LSB if there is overflow
                     incrementPC();
                     break;
                 
@@ -210,7 +225,8 @@ void chip8::emutlateCycle(){
                     break;
                 
                 case(0x000E):
-                    V[0xF] = V[x] & 0x0001;
+                    if((V[x] >> 7 & 0x1) == 1){ V[0xF] = 1; }
+                    else{ V[0xF] = 0; }
                     V[x] <<= 1; // multiply V[x] by 2 by shifting the bits by 1 to the left
                     incrementPC();
                     break;
@@ -234,7 +250,6 @@ void chip8::emutlateCycle(){
 
         case 0xB000:
             pc = (opcode & 0x0FFF) + V[0];
-            incrementPC();
             break;
 
         case 0xC000:
@@ -243,21 +258,22 @@ void chip8::emutlateCycle(){
             break;
         
         case 0xD000: {
+            drawFlag = true;
             int xCoord = V[x] % 64; //x-coordinate wrap around
             int yCoord = V[y] % 32; //y-coordinate wrap around 
             int height = opcode & 0x000F;
             V[0xF] = 0;
             
             for(int row = 0; row < height; row++){
-                if(yCoord + row > 64){
+                if(yCoord + row > 32){
                     break;
                 }
                 for(int col = 0; col < 8; col++){
-                    if(xCoord + col > 32){
+                    if(xCoord + col > 64){
                         break;
                     }
-                    if((memory[(I + row)] && (0b10000000 >> col)) != 0){                  //(I + row) --> Nth byte of data from the sprite font
-                                                                                          //After getting the Nth byte, we want to check each bit from left to right and check if it is 1(or not zero)
+                    if((memory[(I + row)] & (0b10000000 >> col)) != 0){                  //(I + row) --> Nth byte of data from the sprite font
+                                                                                          //After getting the Nth byte, we want to check each bit from left to right and check if it is 1(not zero)
                                                                                           //If the bit from the sprite is 1, we want to XOR the pixel on the display starting at Vx and Vy
                         if(display[(xCoord + (64*yCoord)) + (64*row) + col] == 1){        //If the curr pixel on the display is already set/ON, then set the V[F] flag
                             V[0xF] = 1;                                                   
@@ -267,6 +283,7 @@ void chip8::emutlateCycle(){
                 }
             }
         }
+        incrementPC();
         break;
 
         case 0xE000:
@@ -346,14 +363,14 @@ void chip8::emutlateCycle(){
                     break;
 
                 case 0x0055:
-                    for(i = 0; i < x; i++){
+                    for(i = 0; i <= x; i++){
                         memory[I + i] = V[i];
                     }
                     incrementPC();
                     break;
 
                 case 0x0065:
-                    for(i = 0; i < x; i++){
+                    for(i = 0; i <= x; i++){
                         V[i] = memory[I + i];
                     }
                     incrementPC();

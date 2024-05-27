@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 #include "SDL2/SDL.h"
+#include "chip8.h"
 #include <iostream>
 
 class display{
@@ -16,11 +17,13 @@ class display{
         int fg_colour; //foreground colour
         int bg_colour; //background colour
 
+        chip8* chip8Ref;
+
     public:
-        display();
+        display(chip8 *chip8);
         ~display();
         void clearDisplay();
-        void updateDisplay(uint8_t display[]);
+        void updateDisplay();
 
         int getFgColour();
         int getBgColour();

@@ -69,6 +69,14 @@ bool chip8::getDrawFlag(){
     return drawFlag;
 }
 
+uint8_t* chip8::getDTimer(){
+    return &dt;
+}
+
+uint8_t* chip8::getSTimer(){
+    return &st;
+}
+
 
 /*
 After each instruction is completed, the pc is incremented by 2 since an opcode/instruction
@@ -97,7 +105,12 @@ void chip8::emutlateCycle(){
     bool isPressed;
     int i;
 
-    printf("Address: 0x%04X, Opcode: 0x%04X\n", pc, opcode);
+    // for(int i = 0; i < 16; i++){
+    //     printf("%d, ", keypad[i]);
+    // }
+    // printf("\n");
+
+    //printf("Address: 0x%04X, Opcode: 0x%04X\n", pc, opcode);
 
     switch (opcode & 0xF000){
         case 0x0000:
@@ -282,19 +295,22 @@ void chip8::emutlateCycle(){
                     }
                 }
             }
-        }
+
         incrementPC();
         break;
+        }
 
         case 0xE000:
             switch(opcode & 0x00FF){
                 case 0x009E:
+                    //printf("Key 0x%02X\n", V[x]);
                     if(keypad[V[x]]){
                         incrementPC();
                     }
                     incrementPC();
                     break;
                 case 0x00A1:
+                    //printf("Key 0x%02X\n", V[x]);
                     if(!keypad[V[x]]){
                         incrementPC();
                     }
@@ -316,17 +332,25 @@ void chip8::emutlateCycle(){
                 Check each key to see if it is pressed (set to 1)
                 */
                 case 0x000A:
-                    isPressed = false;
                     i = 0;
-                    while(!isPressed){
-                        if(V[i]){
+                    for(i = 0; i < 16; i++){
+                        if(keypad[i]){
                             V[x] = i;
-                            isPressed = true;
+                            break;
+                            incrementPC();
                         }
-                        i = ((i + 1) % 16);
                     }
-                    incrementPC();
                     break;
+                    //isPressed = false;
+                    // while(!isPressed){
+                    //     if(V[i]){
+                    //         V[x] = i;
+                    //         isPressed = true;
+                    //     }
+                    //     i = ((i + 1) % 16);
+                    // }
+                    // incrementPC();
+                    // break;
 
                 case 0x0015:
                     dt = V[x];

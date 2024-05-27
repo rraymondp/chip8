@@ -90,17 +90,18 @@ class chip8{
         Keys
         The Chip-8 is based on a HEX keypad (0x0 - 0xF)
         therefor an array of length 16 can be used.
-
+    
         Index is set to 1 when key is pressed
         Index is cleared to 0 when key is not pressed
         */
-        uint8_t keypad[16];
+       uint8_t keypad[16]; 
 
         bool debug;
 
         bool drawFlag;
 
     public:
+        //uint8_t keypad[16]; 
         chip8();
         void emutlateCycle();
         bool loadGame( char* filename);
@@ -108,6 +109,8 @@ class chip8{
         bool getDrawFlag();
         uint8_t* getKeypad();
         uint8_t* getDisplay();
+        uint8_t* getDTimer();
+        uint8_t* getSTimer();
 };
 
 #endif

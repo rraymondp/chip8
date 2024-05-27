@@ -1,10 +1,11 @@
 #include "../inc/sdl.h"
 using namespace std;
 
-sdl::sdl(){
+sdl::sdl(chip8* c8){
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
     myState = RUNNING; 
     debug = true;
+    chip8Ref = c8;
 }
 
 sdl::~sdl(){
@@ -20,7 +21,10 @@ Original    QWERTY
 A0BF        ZXCV
 */
 
-void sdl::eventHandler(uint8_t keypad[]){
+void sdl::eventHandler(){
+    uint8_t* keypad = chip8Ref->getKeypad();
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
+
     while(SDL_PollEvent(&event)){
         switch(event.type){
             case SDL_QUIT:
@@ -42,141 +46,45 @@ void sdl::eventHandler(uint8_t keypad[]){
                             myState = RUNNING;
                         }
                         break;
-
-                    case(SDLK_1):
-                        keypad[0x1] = 1;
-                        if(debug){cout << "1 is down" << endl;}
-                        break;
-                    case(SDLK_2):
-                        keypad[0x2] = 1;
-                        if(debug){cout << "2 is down" << endl;}
-                        break;
-                    case(SDLK_3):
-                        keypad[0x3] = 1;
-                        if(debug){cout << "3 is down" << endl;}
-                        break;
-                    case(SDLK_4):
-                        keypad[0xC] = 1;
-                        if(debug){cout << "4 is down" << endl;}
-                        break;
-
-                    case(SDLK_q):
-                        keypad[0x5] = 1;
-                        if(debug){cout << "Q is down" << endl;}
-                        break;
-                    case(SDLK_w):
-                        keypad[0x6] = 1;
-                        if(debug){cout << "W is down" << endl;}
-                        break;
-                    case(SDLK_e):
-                        keypad[0x7] = 1;
-                        if(debug){cout << "E is down" << endl;}
-                        break;
-                    case(SDLK_r):
-                        keypad[0xD] = 1;
-                        if(debug){cout << "R is down" << endl;}
-                        break;
-
-                    case(SDLK_a):
-                        keypad[0x7] = 1;
-                        if(debug){cout << "A is down" << endl;}
-                        break;
-                    case(SDLK_s):
-                        keypad[0x8] = 1;
-                        if(debug){cout << "S is down" << endl;}
-                        break;
-                    case(SDLK_d):
-                        keypad[0x9] = 1;
-                        if(debug){cout << "D is down" << endl;}
-                        break;
-                    case(SDLK_f):
-                        keypad[0xE] = 1;
-                        if(debug){cout << "F is down" << endl;}
-                        break;
-
-                    case(SDLK_z):
-                        keypad[0xA] = 1;
-                        if(debug){cout << "Z is down" << endl;}
-                        break;
-                    case(SDLK_x):
-                        keypad[0x0] = 1;
-                        if(debug){cout << "X is down" << endl;}
-                        break;
-                    case(SDLK_c):
-                        keypad[0xB] = 1;
-                        if(debug){cout << "C is down" << endl;}
-                        break;
-                    case(SDLK_v):
-                        keypad[0xF] = 1;
-                        if(debug){cout << "V is down" << endl;}
-                        break;
-
-                    default:
-                        break;
                 }
-            case SDL_KEYUP:
-                switch(event.key.keysym.sym){
-                    case(SDLK_1):
-                        keypad[0x1] = 0;
-                        break;
-                    case(SDLK_2):
-                        keypad[0x2] = 0;
-                        break;
-                    case(SDLK_3):
-                        keypad[0x3] = 0;
-                        break;
-                    case(SDLK_4):
-                        keypad[0xC] = 0;
-                        break;
 
-                    case(SDLK_q):
-                        keypad[0x5] = 0;
-                        break;
-                    case(SDLK_w):
-                        keypad[0x6] = 0;
-                        break;
-                    case(SDLK_e):
-                        keypad[0x7] = 0;
-                        break;
-                    case(SDLK_r):
-                        keypad[0xD] = 0;
-                        break;
+            default:
+                keypad[0x1] = state[SDL_SCANCODE_1];
+                keypad[0x2] = state[SDL_SCANCODE_2];
+                keypad[0x3] = state[SDL_SCANCODE_3];
+                keypad[0xC] = state[SDL_SCANCODE_4];
 
-                    case(SDLK_a):
-                        keypad[0x7] = 0;
-                        break;
-                    case(SDLK_s):
-                        keypad[0x8] = 0;
-                        break;
-                    case(SDLK_d):
-                        keypad[0x9] = 0;
-                        break;
-                    case(SDLK_f):
-                        keypad[0xE] = 0;
-                        break;
+                keypad[0x4] = state[SDL_SCANCODE_Q];
+                keypad[0x5] = state[SDL_SCANCODE_W];
+                keypad[0x6] = state[SDL_SCANCODE_E];
+                keypad[0xD] = state[SDL_SCANCODE_R];
+                
+                keypad[0x7] = state[SDL_SCANCODE_A];
+                keypad[0x8] = state[SDL_SCANCODE_S];
+                keypad[0x9] = state[SDL_SCANCODE_D];
+                keypad[0xE] = state[SDL_SCANCODE_F];
 
-                    case(SDLK_z):
-                        keypad[0xA] = 0;
-                        break;
-                    case(SDLK_x):
-                        keypad[0x0] = 0;
-                        break;
-                    case(SDLK_c):
-                        keypad[0xB] = 0;
-                        break;
-                    case(SDLK_v):
-                        keypad[0xF] = 0;
-                        break;
-
-                    default:
-                        break;
-            }
+                keypad[0xA] = state[SDL_SCANCODE_Z];
+                keypad[0x0] = state[SDL_SCANCODE_X];
+                keypad[0xB] = state[SDL_SCANCODE_C];
+                keypad[0xF] = state[SDL_SCANCODE_V];
+                break;
         }
     }   
+}
+
+void sdl::updateTimer(){
+    uint8_t* dtRef = chip8Ref->getDTimer();
+    uint8_t* stRef = chip8Ref->getSTimer();
+
+    if(dtRef > 0){
+        *dtRef--;
+    }
+    if(stRef > 0){
+        *stRef--;
+    }
 }
 
 int sdl::getState(){
     return myState;
 }
-
-

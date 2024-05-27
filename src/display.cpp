@@ -1,6 +1,6 @@
 #include "../inc/display.h"
 
-display::display(){
+display::display(chip8 *chip8){
     windowHeight = 32;
     windowWidth = 64;
     windowScaleFactor = 20;
@@ -21,6 +21,8 @@ display::display(){
     );
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    chip8Ref = chip8;
 }
 
 display::~display(){
@@ -33,7 +35,9 @@ void display::clearDisplay(){
     SDL_RenderClear(renderer);
 }
 
-void display::updateDisplay(uint8_t display[]){
+void display::updateDisplay(){
+    uint8_t* display = chip8Ref->getDisplay();
+    SDL_SetRenderDrawColor(renderer, getFgRed(), getFgGreen(), getFgBlue(), getFgAlpha());
 
     for(int row = 0; row < 32; row++){
         for(int col = 0; col < 64; col++){
@@ -43,13 +47,12 @@ void display::updateDisplay(uint8_t display[]){
                 rect.w = windowScaleFactor;
                 rect.h = windowScaleFactor;  
 
-                SDL_SetRenderDrawColor(renderer, getFgRed(), getFgGreen(), getFgBlue(), getFgAlpha());
                 SDL_RenderFillRect(renderer, &rect);
             }
             // else{
             //     SDL_SetRenderDrawColor(renderer, getBgRed(), getBgGreen(), getBgBlue(), getBgAlpha());
             //     SDL_RenderFillRect(renderer, &rect);
-            // }
+            //}
         }
     }
 

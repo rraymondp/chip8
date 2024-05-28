@@ -36,6 +36,8 @@ void display::clearDisplay(){
 }
 
 void display::updateDisplay(){
+    clearDisplay();
+
     uint8_t* display = chip8Ref->getDisplay();
     SDL_SetRenderDrawColor(renderer, getFgRed(), getFgGreen(), getFgBlue(), getFgAlpha());
 
@@ -49,10 +51,6 @@ void display::updateDisplay(){
 
                 SDL_RenderFillRect(renderer, &rect);
             }
-            // else{
-            //     SDL_SetRenderDrawColor(renderer, getBgRed(), getBgGreen(), getBgBlue(), getBgAlpha());
-            //     SDL_RenderFillRect(renderer, &rect);
-            //}
         }
     }
 

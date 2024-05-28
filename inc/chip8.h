@@ -106,11 +106,14 @@ class chip8{
         void emutlateCycle();
         bool loadGame( char* filename);
         void incrementPC();
+        void updateTimers();
         bool getDrawFlag();
         uint8_t* getKeypad();
         uint8_t* getDisplay();
         uint8_t* getDTimer();
         uint8_t* getSTimer();
+        uint16_t getOpcode();
+
 };
 
 #endif

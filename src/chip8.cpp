@@ -77,6 +77,20 @@ uint8_t* chip8::getSTimer(){
     return &st;
 }
 
+uint16_t chip8::getOpcode(){
+    return opcode;
+}
+
+void chip8::updateTimers(){
+    if(dt > 0){
+        dt--;
+    }
+    if(st > 0){
+        puts("BEEP");
+        st--;
+    }
+}
+
 
 /*
 After each instruction is completed, the pc is incremented by 2 since an opcode/instruction
@@ -104,6 +118,10 @@ void chip8::emutlateCycle(){
     unsigned char kk = (opcode & 0x00FF); //kk is the lowest 8-bits of an opcode
     bool isPressed;
     int i;
+    int xCoord = 0;
+    int yCoord = 0;
+    int height = 0;
+    drawFlag = false;
 
     // for(int i = 0; i < 16; i++){
     //     printf("%d, ", keypad[i]);
@@ -196,17 +214,17 @@ void chip8::emutlateCycle(){
                     break;
 
                 case(0x0001):
-                    V[x] = V[x] | V[y];
+                    V[x] |= V[y];
                     incrementPC();
                     break;
                 
                 case(0x0002):
-                    V[x] = V[x] & V[y];
+                    V[x] &= V[y];
                     incrementPC();
                     break;
                 
                 case(0x0003):
-                    V[x] = V[x] ^ V[y];
+                    V[x] ^= V[y];
                     incrementPC();
                     break;
                 
@@ -225,7 +243,7 @@ void chip8::emutlateCycle(){
                     break;
                 
                 case(0x0006):
-                    V[0xF] = V[x] & 0x0001;
+                    V[0xF] = V[x] & 0x1;
                     V[x] >>= 1; // divide V[x] by 2 by shifting the bits by 1 to the right
                     incrementPC();
                     break;
@@ -238,7 +256,7 @@ void chip8::emutlateCycle(){
                     break;
                 
                 case(0x000E):
-                    if((V[x] >> 7 & 0x1) == 1){ V[0xF] = 1; }
+                    if((V[x] >> 7) & 0x1){ V[0xF] = 1; }
                     else{ V[0xF] = 0; }
                     V[x] <<= 1; // multiply V[x] by 2 by shifting the bits by 1 to the left
                     incrementPC();
@@ -270,21 +288,21 @@ void chip8::emutlateCycle(){
             incrementPC();
             break;
         
-        case 0xD000: {
+        case 0xD000: 
             drawFlag = true;
-            int xCoord = V[x] % 64; //x-coordinate wrap around
-            int yCoord = V[y] % 32; //y-coordinate wrap around 
-            int height = opcode & 0x000F;
+            xCoord = V[x] % 64; //x-coordinate wrap around
+            yCoord = V[y] % 32; //y-coordinate wrap around 
+            height = opcode & 0x000F;
             V[0xF] = 0;
             
             for(int row = 0; row < height; row++){
-                if(yCoord + row > 32){
-                    break;
-                }
+                // if(yCoord + row > 32){
+                //     break;
+                // }
                 for(int col = 0; col < 8; col++){
-                    if(xCoord + col > 64){
-                        break;
-                    }
+                    // if(xCoord + col > 64){
+                    //     break;
+                    // }
                     if((memory[(I + row)] & (0b10000000 >> col)) != 0){                  //(I + row) --> Nth byte of data from the sprite font
                                                                                           //After getting the Nth byte, we want to check each bit from left to right and check if it is 1(not zero)
                                                                                           //If the bit from the sprite is 1, we want to XOR the pixel on the display starting at Vx and Vy
@@ -298,7 +316,7 @@ void chip8::emutlateCycle(){
 
         incrementPC();
         break;
-        }
+        
 
         case 0xE000:
             switch(opcode & 0x00FF){
@@ -332,12 +350,11 @@ void chip8::emutlateCycle(){
                 Check each key to see if it is pressed (set to 1)
                 */
                 case 0x000A:
-                    i = 0;
                     for(i = 0; i < 16; i++){
                         if(keypad[i]){
                             V[x] = i;
-                            break;
                             incrementPC();
+                            break;
                         }
                     }
                     break;
@@ -408,5 +425,7 @@ void chip8::emutlateCycle(){
         default:
             break;
     }
+
+    updateTimers();
 
 }

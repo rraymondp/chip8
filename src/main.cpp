@@ -33,21 +33,20 @@ int main(int argc, char* argv[]){
         if(mySDL.getState() == 2){    //if PAUSE
             continue;
         }
+    
+        double startTime = SDL_GetPerformanceCounter();
 
-        for(int i = 0; i < 16; i++){
-            printf("%d, ", keypad[i]);
-        }
-        printf("\n");
-
-        int startTime = SDL_GetPerformanceCounter();
-
-        for(int i = 0; i < 700 / 60; i++){          //we want 700 instructions per second 
+        for(int i = 0; i < 600 / 60; i++){          //we want 700 instructions per second 
             myChip8.emutlateCycle();                //However, we update the display at 60Hz(16.67ms)
+
+            if((myChip8.getOpcode() >> 12) == 0xD){
+                break;
+            }
         }                                           //Therefore we want to execute 700(inst/sec) * (1/60)(sec) to get number of instrcutions in 16.67ms
 
-        int endTime = SDL_GetPerformanceCounter();
+        double endTime = SDL_GetPerformanceCounter();
 
-        double elapsedTIme = (double)(((endTime - startTime)) * 1000) / SDL_GetPerformanceFrequency();
+        double elapsedTIme = (double)((endTime - startTime) * 1000) / SDL_GetPerformanceFrequency();
 
         if(16.67 - elapsedTIme > 0){
             delay = 16.67 - elapsedTIme;
@@ -56,14 +55,11 @@ int main(int argc, char* argv[]){
             delay = 0;
         }
 
-        SDL_Delay(delay); //16ms = 60Hz
-
         if(myChip8.getDrawFlag()){
             myDisplay.updateDisplay();
         }
 
-        mySDL.updateTimer();
-
+        SDL_Delay(delay); //16ms = 60Hz
 
     }
 
